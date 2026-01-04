@@ -937,7 +937,7 @@
     const pageHeight = pdf.internal.pageSize.getHeight();
     const margin = 10;
 
-    // 🔥 FIX: sequential image loading (prevents freeze)
+    //  FIX: sequential image loading (prevents freeze)
     for (let i = 0; i < screenshots.length; i++) {
         if (i > 0) pdf.addPage(orientation);
 
