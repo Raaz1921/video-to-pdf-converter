@@ -30,14 +30,14 @@ This project does exactly that – **locally in your browser**, with no server r
 - ✏️ **Custom PDF Naming** - User-defined PDF filenames 
 - 💾 **Multiple Layouts** - **NEW!** Choose 1, 2, 4, 6, or 9 screenshots per page
 
-### PDF Layout Options (File Size Reducer) 🆕
+### PDF Layout Options (File Size Reducer) 
 Reduce your PDF file size dramatically by choosing how many screenshots to place on each page:
 
 | Layout | Screenshots/Page | File Size Reduction | Best For |
 |--------|------------------|---------------------|----------|
 | **📄 Full Page** | 1 | Standard size | High detail needed |
 | **📄📄 1x2 Grid** | 2 | ~50% smaller | Lectures, tutorials |
-| **📄📄 2x2 Grid** | 4 | ~75% smaller ⭐ | **Recommended** - Best balance |
+| **📄📄 2x2 Grid** | 4 | ~75% smaller ⭐ | *|
 | **📄📄 2x3 Grid** | 6 | ~83% smaller | Quick reviews |
 | **📄📄 3x3 Grid** | 9 | ~89% smaller | Long videos, overviews |
 
@@ -92,18 +92,6 @@ No dependencies to install, no build process needed!
 - Click **"Choose Video File"**
 - Select a video from your device
 - Preview appears automatically
-
-### 2. Configure Settings
-
-#### **📄 Screenshots Per Page (New!)**
-Choose your PDF layout to reduce file size:
-- **1 screenshot/page** - Full page, highest detail (standard size)
-- **2 screenshots/page** - 1x2 grid (~50% smaller)
-- **4 screenshots/page** - 2x2 grid (~75% smaller) ⭐ **Recommended**
-- **6 screenshots/page** - 2x3 grid (~83% smaller)
-- **9 screenshots/page** - 3x3 grid (~89% smaller)
-
-💡 **Tip**: Use 2x2 or 2x3 for the best balance between readability and file size!
 
 #### **Mode Selection**
 Choose between two capture modes:
@@ -164,21 +152,6 @@ For each frame:
   4. If time since last capture > max gap → Force capture
   5. Generate preview thumbnail
 ```
-
-**Grid Layout Algorithm**
-```
-For each PDF page:
-  1. Calculate grid dimensions (rows × cols)
-  2. Batch screenshots into groups
-  3. For each screenshot in batch:
-     - Calculate grid position
-     - Maintain aspect ratio
-     - Center in grid cell
-     - Add timestamp label
-  4. Add page number
-```
-
----
 
 ## 📂 Project Structure
 
