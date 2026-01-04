@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video to PDF Converter </title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --container-bg: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --input-bg: #ffffff;
+            --preview-bg: #f8f9fa;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --container-bg: #0f3460;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #1a1a2e;
+            --input-bg: #1a1a2e;
+            --preview-bg: #1a1a2e;
+            --shadow: rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            background: var(--container-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px var(--shadow);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dark-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-label {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(30px);
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-name {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--preview-bg);
+            border-radius: 8px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .video-preview {
+            margin: 20px 0;
+            display: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        .video-preview video {
+            width: 100%;
+            max-height: 400px;
+            display: block;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .mode-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--preview-bg);
+            border-radius: 10px;
+        }
+
+        .mode-selector label {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .mode-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-option {
+            flex: 1;
+            padding: 12px;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .mode-option:hover {
+            border-color: #667eea;
+        }
+
+        .mode-option.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .time-range {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .time-range.active {
+            display: grid;
+        }
+
+        .scene-detection-options {
+            display: none;
+            padding: 15px;
+            background: var(--preview-bg);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .scene-detection-options.active {
+            display: block;
+        }
+
+        .scene-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .sensitivity-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .sensitivity-value {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--preview-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            opacity: 0.8;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: var(--preview-bg);
+            border-radius: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: var(--border-color);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .preview-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+            padding: 20px;
+            background: var(--preview-bg);
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .preview-item {
+            position: relative;
+        }
+
+        .preview-image {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .preview-image:hover {
+            transform: scale(1.05);
+        }
+
+        .preview-timestamp {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .scene-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+
+        .forced-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .success-message {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            border: 2px solid #c3e6cb;
+        }
+
+        body.dark-mode .success-message {
+            background: #1e4620;
+            color: #a8d5ab;
+            border-color: #2d5a2f;
+        }
+
+        .info-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            line-height: 1.6;
+            border: 2px solid var(--border-color);
+        }
+
+        .info-box strong {
+            color: var(--text-primary);
+        }
+
+        .highlight {
+            color: #667eea;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📹 Video to PDF </h1>
+            <div class="dark-mode-toggle">
+                <span class="toggle-label">🌙</span>
+                <div class="toggle-switch" id="darkModeToggle">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="videoFile" accept="video/*">
+                <label for="videoFile" class="file-input-label">
+                    Choose Video File
+                </label>
+            </div>
+            <div class="file-name" id="fileName">No file chosen</div>
+        </div>
+
+        <div class="video-preview" id="videoPreview">
+            <video id="videoPlayer" controls></video>
+        </div>
+
+        <div class="controls" id="controls">
+            <div class="mode-selector">
+                <label>Capture Mode:</label>
+                <div class="mode-options">
+                    <div class="mode-option active" data-mode="interval">⏱️ Fixed Interval</div>
+                    <div class="mode-option" data-mode="scene">🎬 Scene Detection</div>
+                </div>
+            </div>
+
+            <div class="time-range" id="timeRange">
+                <div class="control-group">
+                    <label for="startTime">Start Time (seconds):</label>
+                    <input type="number" id="startTime" min="0" value="0" step="1">
+                </div>
+                <div class="control-group">
+                    <label for="endTime">End Time (seconds):</label>
+                    <input type="number" id="endTime" min="0" value="0" step="1">
+                </div>
+            </div>
+
+            <div id="intervalControls">
+                <div class="control-group">
+                    <label for="interval">Screenshot Interval (seconds):</label>
+                    <input type="number" id="interval" min="1" value="5" step="0.5">
+                </div>
+            </div>
+
+            <div class="scene-detection-options" id="sceneOptions">
+                <div class="scene-grid">
+                    <div class="control-group">
+                        <label for="sceneInterval">Check Interval (seconds):</label>
+                        <input type="number" id="sceneInterval" min="1" value="10" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label for="maxGap">Max Gap (seconds):</label>
+                        <input type="number" id="maxGap" min="10" value="60" step="10">
+                    </div>
+                </div>
+                <label for="sensitivity">Scene Change Sensitivity:</label>
+                <input type="range" id="sensitivity" class="sensitivity-slider" min="5" max="50" value="25" step="1">
+                <div class="sensitivity-value">Sensitivity: <span id="sensitivityValue">25</span>% (Medium)</div>
+                <div class="info-box">
+                    <strong>🎯 How it works:</strong><br>
+                    • Checks every <span class="highlight" id="intervalDisplay">10</span> seconds for scene changes<br>
+                    • If scene changed → Captures screenshot 🎬<br>
+                    • If no scene change detected for <span class="highlight" id="gapDisplay">60</span> seconds → Forces capture anyway 🔒<br>
+                    <strong>Result:</strong> No huge gaps in your PDF!
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" id="processBtn">Generate PDF</button>
+                <button class="btn-secondary" id="resetBtn">Reset</button>
+            </div>
+        </div>
+
+        <div class="progress-section" id="progressSection">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <div class="progress-text" id="progressText">Processing...</div>
+        </div>
+
+        <div class="preview-grid" id="previewGrid"></div>
+
+        <div class="success-message" id="successMessage">
+            ✅ PDF generated successfully! Check your Downloads folder.
+        </div>
+
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+        // Elements
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const videoFile = document.getElementById('videoFile');
+        const fileName = document.getElementById('fileName');
+        const videoPreview = document.getElementById('videoPreview');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const controls = document.getElementById('controls');
+        const modeOptions = document.querySelectorAll('.mode-option');
+        const timeRange = document.getElementById('timeRange');
+        const startTime = document.getElementById('startTime');
+        const endTime = document.getElementById('endTime');
+        const intervalControls = document.getElementById('intervalControls');
+        const sceneOptions = document.getElementById('sceneOptions');
+        const sceneInterval = document.getElementById('sceneInterval');
+        const maxGap = document.getElementById('maxGap');
+        const sensitivity = document.getElementById('sensitivity');
+        const sensitivityValue = document.getElementById('sensitivityValue');
+        const intervalDisplay = document.getElementById('intervalDisplay');
+        const gapDisplay = document.getElementById('gapDisplay');
+        const processBtn = document.getElementById('processBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const interval = document.getElementById('interval');
+        const progressSection = document.getElementById('progressSection');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const previewGrid = document.getElementById('previewGrid');
+        const successMessage = document.getElementById('successMessage');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let screenshots = [];
+        let currentMode = 'interval';
+
+        // Update display values
+        sceneInterval.addEventListener('input', function() {
+            intervalDisplay.textContent = this.value;
+        });
+
+        maxGap.addEventListener('input', function() {
+            gapDisplay.textContent = this.value;
+        });
+
+        // Dark Mode Toggle
+        darkModeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            darkModeToggle.classList.toggle('active');
+        });
+
+        // Mode Selection
+        modeOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                modeOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                currentMode = this.dataset.mode;
+                
+                if (currentMode === 'interval') {
+                    intervalControls.style.display = 'block';
+                    sceneOptions.classList.remove('active');
+                } else {
+                    intervalControls.style.display = 'none';
+                    sceneOptions.classList.add('active');
+                }
+            });
+        });
+
+        // Sensitivity slider
+        sensitivity.addEventListener('input', function() {
+            const value = this.value;
+            let level = 'Low';
+            if (value > 15 && value <= 35) level = 'Medium';
+            else if (value > 35) level = 'High';
+            sensitivityValue.textContent = `${value}% (${level})`;
+        });
+
+        // Video file upload
+        videoFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = file.name;
+                const url = URL.createObjectURL(file);
+                videoPlayer.src = url;
+                videoPlayer.addEventListener('loadedmetadata', function() {
+                    const duration = Math.floor(videoPlayer.duration);
+                    endTime.value = duration;
+                    endTime.max = duration;
+                    startTime.max = duration;
+                    timeRange.classList.add('active');
+                });
+                videoPreview.style.display = 'block';
+                controls.style.display = 'block';
+                successMessage.style.display = 'none';
+                previewGrid.style.display = 'none';
+                screenshots = [];
+            }
+        });
+
+        // Reset button
+        resetBtn.addEventListener('click', function() {
+            videoFile.value = '';
+            fileName.textContent = 'No file chosen';
+            videoPreview.style.display = 'none';
+            controls.style.display = 'none';
+            progressSection.style.display = 'none';
+            previewGrid.style.display = 'none';
+            successMessage.style.display = 'none';
+            timeRange.classList.remove('active');
+            screenshots = [];
+            previewGrid.innerHTML = '';
+        });
+
+        // Process button
+        processBtn.addEventListener('click', async function() {
+            if (!videoPlayer.src) {
+                alert('Please select a video first!');
+                return;
+            }
+
+            const start = parseFloat(startTime.value);
+            const end = parseFloat(endTime.value);
+
+            if (start >= end) {
+                alert('Start time must be less than end time!');
+                return;
+            }
+
+            if (currentMode === 'interval') {
+                const intervalValue = parseFloat(interval.value);
+                if (intervalValue <= 0) {
+                    alert('Please enter a valid interval!');
+                    return;
+                }
+            } else {
+                const sceneIntervalValue = parseFloat(sceneInterval.value);
+                const maxGapValue = parseFloat(maxGap.value);
+                if (sceneIntervalValue <= 0 || maxGapValue <= 0) {
+                    alert('Please enter valid values for intervals!');
+                    return;
+                }
+            }
+
+            processBtn.disabled = true;
+            resetBtn.disabled = true;
+            progressSection.style.display = 'block';
+            previewGrid.style.display = 'grid';
+            previewGrid.innerHTML = '';
+            screenshots = [];
+
+            if (currentMode === 'interval') {
+                await captureByInterval(start, end);
+            } else {
+                await captureBySceneDetection(start, end);
+            }
+        });
+
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            
+            if (hrs > 0) {
+                return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        async function captureByInterval(start, end) {
+            return new Promise((resolve) => {
+                const intervalValue = parseFloat(interval.value);
+                const times = [];
+                
+                for (let t = start; t < end; t += intervalValue) {
+                    times.push(t);
+                }
+
+                let currentIndex = 0;
+                const totalScreenshots = times.length;
+
+                videoPlayer.currentTime = times[currentIndex];
+
+                videoPlayer.addEventListener('seeked', function captureFrame() {
+                    canvas.width = videoPlayer.videoWidth;
+                    canvas.height = videoPlayer.videoHeight;
+                    ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+
+                    const imageData = canvas.toDataURL('image/jpeg', 0.95);
+                    const timestamp = times[currentIndex];
+                    
+                    screenshots.push({
+                        image: imageData,
+                        time: timestamp,
+                        timeFormatted: formatTime(timestamp),
+                        isScene: false,
+                        isForced: false
+                    });
+
+                    addPreview(imageData, timestamp, false, false);
+
+                    currentIndex++;
+                    const progress = (currentIndex / totalScreenshots) * 100;
+                    updateProgress(progress, currentIndex, totalScreenshots);
+
+                    if (currentIndex < totalScreenshots) {
+                        videoPlayer.currentTime = times[currentIndex];
+                    } else {
+                        videoPlayer.removeEventListener('seeked', captureFrame);
+                        generatePDF();
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        async function captureBySceneDetection(start, end) {
+            return new Promise((resolve) => {
+                const sensitivityValue = parseFloat(sensitivity.value);
+                const threshold = sensitivityValue / 100;
+                const checkInterval = parseFloat(sceneInterval.value);
+                const maxGapValue = parseFloat(maxGap.value);
+                const times = [];
+                
+                for (let t = start; t < end; t += checkInterval) {
+                    times.push(t);
+                }
+
+                let currentIndex = 0;
+                let previousImageData = null;
+                let lastCaptureTime = start;
+                const totalChecks = times.length;
+                let capturedCount = 0;
+                let forcedCount = 0;
+
+                videoPlayer.currentTime = times[currentIndex];
+
+                videoPlayer.addEventListener('seeked', function checkFrame() {
+                    canvas.width = videoPlayer.videoWidth;
+                    canvas.height = videoPlayer.videoHeight;
+                    ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+
+                    const currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const currentTime = times[currentIndex];
+                    const timeSinceLastCapture = currentTime - lastCaptureTime;
+                    let shouldCapture = false;
+                    let isForced = false;
+
+                    if (previousImageData) {
+                        const difference = calculateImageDifference(previousImageData, currentImageData);
+                        
+                        // Check if scene changed OR max gap exceeded
+                        if (difference > threshold) {
+                            shouldCapture = true;
+                        } else if (timeSinceLastCapture >= maxGapValue) {
+                            shouldCapture = true;
+                            isForced = true;
+                            forcedCount++;
+                        }
+                    } else {
+                        // Always capture first frame
+                        shouldCapture = true;
+                    }
+
+                    if (shouldCapture) {
+                        const imageData = canvas.toDataURL('image/jpeg', 0.95);
+                        
+                        screenshots.push({
+                            image: imageData,
+                            time: currentTime,
+                            timeFormatted: formatTime(currentTime),
+                            isScene: true,
+                            isForced: isForced
+                        });
+
+                        addPreview(imageData, currentTime, true, isForced);
+                        capturedCount++;
+                        lastCaptureTime = currentTime;
+                    }
+
+                    previousImageData = currentImageData;
+
+                    currentIndex++;
+                    const progress = (currentIndex / totalChecks) * 100;
+                    progressFill.style.width = progress + '%';
+                    progressFill.textContent = Math.round(progress) + '%';
+                    progressText.textContent = `Checking... (${capturedCount} captured: ${capturedCount - forcedCount} scenes + ${forcedCount} forced)`;
+
+                    if (currentIndex < totalChecks) {
+                        videoPlayer.currentTime = times[currentIndex];
+                    } else {
+                        videoPlayer.removeEventListener('seeked', checkFrame);
+                        generatePDF();
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        function calculateImageDifference(imageData1, imageData2) {
+            const data1 = imageData1.data;
+            const data2 = imageData2.data;
+            let diff = 0;
+            
+            for (let i = 0; i < data1.length; i += 40) {
+                diff += Math.abs(data1[i] - data2[i]) +
+                        Math.abs(data1[i + 1] - data2[i + 1]) +
+                        Math.abs(data1[i + 2] - data2[i + 2]);
+            }
+            
+            return diff / (data1.length / 40) / 765;
+        }
+
+        function addPreview(imageData, timestamp, isScene, isForced) {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+            
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.className = 'preview-image';
+            
+            const timestampLabel = document.createElement('div');
+            timestampLabel.className = 'preview-timestamp';
+            timestampLabel.textContent = formatTime(timestamp);
+            
+            previewItem.appendChild(img);
+            previewItem.appendChild(timestampLabel);
+            
+            if (isScene) {
+                const badge = document.createElement('div');
+                badge.className = isForced ? 'scene-badge forced-badge' : 'scene-badge';
+                badge.textContent = isForced ? '🔒' : '🎬';
+                previewItem.appendChild(badge);
+            }
+            
+            previewGrid.appendChild(previewItem);
+        }
+
+        function updateProgress(progress, current, total) {
+            progressFill.style.width = progress + '%';
+            progressFill.textContent = Math.round(progress) + '%';
+            progressText.textContent = `Captured ${current} of ${total} screenshots...`;
+        }
+
+        async function generatePDF() {
+    progressText.textContent = 'Generating PDF...';
+
+    const { jsPDF } = window.jspdf;
+
+    // 🔹 Ask user for file name
+    let userFileName = prompt(
+        "Enter PDF file name:",
+        "video_to_pdf"
+    );
+
+    if (!userFileName) {
+        progressText.textContent = '❌ Download cancelled';
+        processBtn.disabled = false;
+        resetBtn.disabled = false;
+        return;
+    }
+
+    userFileName = userFileName.trim();
+    if (!userFileName.toLowerCase().endsWith('.pdf')) {
+        userFileName += '.pdf';
+    }
+
+    // Load first image to decide orientation
+    const firstImg = new Image();
+    firstImg.src = screenshots[0].image;
+    await new Promise(resolve => firstImg.onload = resolve);
+
+    const orientation = firstImg.width > firstImg.height ? 'l' : 'p';
+    const pdf = new jsPDF(orientation, 'mm', 'a4');
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+
+    // 🔥 FIX: sequential image loading (prevents freeze)
+    for (let i = 0; i < screenshots.length; i++) {
+        if (i > 0) pdf.addPage(orientation);
+
+        const img = new Image();
+        img.src = screenshots[i].image;
+
+        await new Promise((resolve, reject) => {
+            img.onload = () => {
+                const imgAspectRatio = img.width / img.height;
+                const pageAspectRatio =
+                    (pageWidth - margin * 2) / (pageHeight - margin * 3);
+
+                let imageWidth, imageHeight, x, y;
+
+                if (imgAspectRatio > pageAspectRatio) {
+                    imageWidth = pageWidth - margin * 2;
+                    imageHeight = imageWidth / imgAspectRatio;
+                    x = margin;
+                    y = (pageHeight - imageHeight) / 2;
+                } else {
+                    imageHeight = pageHeight - margin * 3;
+                    imageWidth = imageHeight * imgAspectRatio;
+                    x = (pageWidth - imageWidth) / 2;
+                    y = margin;
+                }
+
+                pdf.addImage(img, 'JPEG', x, y, imageWidth, imageHeight);
+
+                pdf.setFontSize(12);
+                pdf.setTextColor(100, 100, 100);
+
+                let timeText = `Time: ${screenshots[i].timeFormatted}`;
+                if (screenshots[i].isScene) {
+                    timeText = screenshots[i].isForced
+                        ? `🔒 Auto-capture (Max Gap) - Time: ${screenshots[i].timeFormatted}`
+                        : `🎬 Scene Change - Time: ${screenshots[i].timeFormatted}`;
+                }
+
+                pdf.text(timeText, pageWidth / 2, 7, { align: 'center' });
+
+                pdf.setFontSize(10);
+                pdf.text(
+                    `Page ${i + 1} of ${screenshots.length}`,
+                    pageWidth / 2,
+                    pageHeight - 5,
+                    { align: 'center' }
+                );
+
+                const progress = ((i + 1) / screenshots.length) * 100;
+                progressFill.style.width = progress + '%';
+                progressFill.textContent = Math.round(progress) + '%';
+
+                resolve();
+            };
+
+            img.onerror = reject;
+        });
+    }
+
+    try {
+        pdf.save(userFileName);
+        progressText.textContent =
+            `PDF generated successfully! (${screenshots.length} screenshots)`;
+        successMessage.style.display = 'block';
+    } catch (e) {
+        alert("PDF too large for this browser. Please use desktop.");
+        progressText.textContent = '❌ PDF generation failed';
+    }
+
+    processBtn.disabled = false;
+    resetBtn.disabled = false;
+
+    setTimeout(() => {
+        progressSection.style.display = 'none';
+    }, 3000);
+}
+    </script>
+</body>
+</html>
