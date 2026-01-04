@@ -4,7 +4,7 @@ A **browser-based Video to PDF Converter** that converts videos into **screensho
 
 > ✅ Runs entirely in your browser  
 > ✅ Works offline after loading  
-> ❌ No video is uploaded anywhere  
+ 
 
 ---
 
