@@ -1,14 +1,4 @@
-# 📹 Video to PDF Converter (Browser-Based)
-
-A **browser-based Video to PDF Converter** that converts videos into **screenshot-based PDFs** using **fixed time intervals** or **smart scene detection** — fully **client-side**, with **no backend**, **no uploads**, and **no server cost**.
-
-> ✅ Runs entirely in your browser  
-> ✅ Works offline after loading  
- 
-
----
-
-## 🔍 What is Video to PDF?# 📹 Video to PDF Converter 
+# 🎹 Video to PDF Converter 
 
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
@@ -21,11 +11,11 @@ A **browser-based Video to PDF Converter** that transforms videos into **screens
 
 ---
 
-## 🔍 What is Video to PDF?
+## 📝 What is Video to PDF?
 
-**Video to PDF** means extracting visual frames (screenshots) from a video and compiling them into a multi-page PDF document. Each page represents a meaningful moment in the video — slides, scenes, or key frames.
+**Video to PDF** means extracting visual frames (screenshots) from a video and compiling them into a multi-page PDF document. Each page represents a meaningful moment in the video – slides, scenes, or key frames.
 
-This project does exactly that — **locally in your browser**, with no server required.
+This project does exactly that – **locally in your browser**, with no server required.
 
 ---
 
@@ -38,6 +28,23 @@ This project does exactly that — **locally in your browser**, with no server r
 - 🎬 **Smart Scene Detection** - Automatically detect scene changes
 - 🔒 **Max Gap Protection** - Prevents long gaps in scene detection mode
 - ✏️ **Custom PDF Naming** - User-defined PDF filenames 
+- 💾 **Multiple Layouts** - **NEW!** Choose 1, 2, 4, 6, or 9 screenshots per page
+
+### PDF Layout Options (File Size Reducer) 🆕
+Reduce your PDF file size dramatically by choosing how many screenshots to place on each page:
+
+| Layout | Screenshots/Page | File Size Reduction | Best For |
+|--------|------------------|---------------------|----------|
+| **📄 Full Page** | 1 | Standard size | High detail needed |
+| **📄📄 1x2 Grid** | 2 | ~50% smaller | Lectures, tutorials |
+| **📄📄 2x2 Grid** | 4 | ~75% smaller ⭐ | **Recommended** - Best balance |
+| **📄📄 2x3 Grid** | 6 | ~83% smaller | Quick reviews |
+| **📄📄 3x3 Grid** | 9 | ~89% smaller | Long videos, overviews |
+
+**Example**: 100 screenshots
+- 1/page = 100 pages = ~150 MB
+- 4/page = 25 pages = ~40 MB (73% smaller!)
+- 9/page = 12 pages = ~20 MB (87% smaller!)
 
 ### User Experience
 - 🧾 **Multi-page PDF Generation** - Create comprehensive video summaries
@@ -47,7 +54,7 @@ This project does exactly that — **locally in your browser**, with no server r
 - 📱 **Responsive Design** - Works on desktop and mobile devices
 
 ### Privacy & Performance
-- 🔐 **100% Client-Side** - No uploads, no tracking, no data collection
+- 🔒 **100% Client-Side** - No uploads, no tracking, no data collection
 - ⚡ **Optimized Processing** - Sequential image loading prevents browser freezing
 - 💾 **Memory Efficient** - Smart resource management
 - 🌐 **Works Offline** - Functions without internet after initial load
@@ -57,7 +64,7 @@ This project does exactly that — **locally in your browser**, with no server r
 ## 🚀 Quick Start
 
 ### Option 1: Direct Use
-1. Download the `Index.html` file
+1. Download the `index.html` file
 2. Open it in any modern web browser (Chrome, Firefox, Edge, Safari)
 3. Start converting videos!
 
@@ -70,10 +77,9 @@ git clone https://github.com/yourusername/video-to-pdf-converter.git
 cd video-to-pdf-converter
 
 # Open in browser
-open Index.html  # macOS
-start Index.html # Windows
-open Index.html  # Smartphone (Chrome)
-xdg-open Index.html # Linux
+open index.html  # macOS
+start index.html # Windows
+xdg-open index.html # Linux
 ```
 
 No dependencies to install, no build process needed!
@@ -88,6 +94,16 @@ No dependencies to install, no build process needed!
 - Preview appears automatically
 
 ### 2. Configure Settings
+
+#### **📄 Screenshots Per Page (New!)**
+Choose your PDF layout to reduce file size:
+- **1 screenshot/page** - Full page, highest detail (standard size)
+- **2 screenshots/page** - 1x2 grid (~50% smaller)
+- **4 screenshots/page** - 2x2 grid (~75% smaller) ⭐ **Recommended**
+- **6 screenshots/page** - 2x3 grid (~83% smaller)
+- **9 screenshots/page** - 3x3 grid (~89% smaller)
+
+💡 **Tip**: Use 2x2 or 2x3 for the best balance between readability and file size!
 
 #### **Mode Selection**
 Choose between two capture modes:
@@ -127,7 +143,7 @@ Choose between two capture modes:
 - **HTML5** - Structure and video handling
 - **CSS3** - Responsive design with dark mode
 - **Vanilla JavaScript** - Core logic and processing
-- **jsPDF 2.5.1** - PDF generation
+- **jsPDF 2.5.1** - PDF generation with grid layout support
 - **Canvas API** - Frame extraction
 - **HTML5 Video API** - Video manipulation
 
@@ -136,7 +152,6 @@ Choose between two capture modes:
 - ✅ Firefox
 - ✅ Safari
 - ✅ Opera
-  
 
 ### Key Algorithms
 
@@ -150,13 +165,26 @@ For each frame:
   5. Generate preview thumbnail
 ```
 
+**Grid Layout Algorithm**
+```
+For each PDF page:
+  1. Calculate grid dimensions (rows × cols)
+  2. Batch screenshots into groups
+  3. For each screenshot in batch:
+     - Calculate grid position
+     - Maintain aspect ratio
+     - Center in grid cell
+     - Add timestamp label
+  4. Add page number
+```
+
 ---
 
 ## 📂 Project Structure
 
 ```
 video-to-pdf-converter/
-├── Index.html          # Main application file (standalone)
+├── index.html          # Main application file (standalone)
 └── README.md          # This file
 ```
 
@@ -172,10 +200,20 @@ video-to-pdf-converter/
 - **🎬 Movies/Videos**: Generate scene summaries
 - **📺 Tutorials**: Create step-by-step visual guides
 - **📊 Webinars**: Document important moments
+- **💾 Archive**: Save video content in compact PDF format
 
 ---
 
 ## ⚙️ Configuration Options
+
+### PDF Layout Settings
+| Layout Option | Grid | Pages (100 screenshots) | File Size Reduction |
+|---------------|------|-------------------------|---------------------|
+| Full Page | 1×1 | 100 pages | Standard (~150 MB) |
+| 1×2 Grid | 1×2 | 50 pages | ~50% smaller (~75 MB) |
+| 2×2 Grid | 2×2 | 25 pages | ~75% smaller (~40 MB) ⭐ |
+| 2×3 Grid | 2×3 | 17 pages | ~83% smaller (~25 MB) |
+| 3×3 Grid | 3×3 | 12 pages | ~89% smaller (~20 MB) |
 
 ### Fixed Interval Mode
 | Setting | Default | Description |
@@ -209,17 +247,17 @@ video-to-pdf-converter/
 
 - [ ] Batch processing multiple videos
 - [ ] Custom PDF page dimensions
-- [ ] Image quality settings
+- [ ] Additional image quality settings
 - [ ] OCR text extraction
 - [ ] Annotation capabilities
 - [ ] Cloud storage integration (optional)
+- [x] ~~Multiple screenshots per page~~ ✅ **Completed!**
 
 ---
 
 ## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
-
 
 ---
 
@@ -237,18 +275,10 @@ If you find this project helpful, please consider giving it a ⭐ on GitHub!
 
 ---
 
-**Made with 💜 for the open-source community**
+## 💻 Author
 
-**Video to PDF** means extracting visual frames (screenshots) from a video and compiling them into a multi-page PDF document.
-
-Each page represents a meaningful moment in the video (slides, scenes, key frames).
-
-This project does exactly that — **locally in your browser**.
+Created by **Raaz**
 
 ---
 
-## 👨‍💻 Author
-
-Created by [Raaz]
-
-
+**Made with 💜 for the open-source community**

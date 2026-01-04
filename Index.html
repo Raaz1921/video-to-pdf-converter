@@ -231,7 +231,7 @@
             font-size: 1em;
         }
 
-        input[type="number"] {
+        input[type="number"], select {
             width: 100%;
             padding: 12px;
             border: 2px solid var(--border-color);
@@ -242,9 +242,13 @@
             color: var(--text-primary);
         }
 
-        input[type="number"]:focus {
+        input[type="number"]:focus, select:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        select {
+            cursor: pointer;
         }
 
         .time-range {
@@ -286,6 +290,70 @@
             color: var(--text-secondary);
             font-size: 0.9em;
             margin-top: 5px;
+        }
+
+        /* NEW: PDF Layout Options */
+        .layout-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--preview-bg);
+            border-radius: 10px;
+            border: 2px solid #667eea;
+        }
+
+        .layout-options {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .layout-option {
+            padding: 15px 10px;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .layout-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .layout-option.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .layout-preview {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .layout-text {
+            font-size: 0.85em;
+        }
+
+        .layout-benefit {
+            background: #e8f4ff;
+            color: #0066cc;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        body.dark-mode .layout-benefit {
+            background: #1a3a52;
+            color: #66b3ff;
         }
 
         .button-group {
@@ -466,7 +534,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📹 Video to PDF </h1>
+            <h1>🎹 Video to PDF </h1>
             <div class="dark-mode-toggle">
                 <span class="toggle-label">🌙</span>
                 <div class="toggle-switch" id="darkModeToggle">
@@ -490,6 +558,36 @@
         </div>
 
         <div class="controls" id="controls">
+            <!-- NEW: PDF Layout Selector -->
+            <div class="layout-selector">
+                <label>📄 Screenshots Per Page (File Size Reducer):</label>
+                <div class="layout-options">
+                    <div class="layout-option active" data-layout="1">
+                        <div class="layout-preview">📄</div>
+                        <div class="layout-text">1<br>Full Page</div>
+                    </div>
+                    <div class="layout-option" data-layout="2">
+                        <div class="layout-preview">📄📄</div>
+                        <div class="layout-text">2<br>1x2 Grid</div>
+                    </div>
+                    <div class="layout-option" data-layout="4">
+                        <div class="layout-preview">📄📄<br>📄📄</div>
+                        <div class="layout-text">4<br>2x2 Grid</div>
+                    </div>
+                    <div class="layout-option" data-layout="6">
+                        <div class="layout-preview">📄📄<br>📄📄<br>📄📄</div>
+                        <div class="layout-text">6<br>2x3 Grid</div>
+                    </div>
+                    <div class="layout-option" data-layout="9">
+                        <div class="layout-preview">📄📄📄<br>📄📄📄<br>📄📄📄</div>
+                        <div class="layout-text">9<br>3x3 Grid</div>
+                    </div>
+                </div>
+                <div class="layout-benefit" id="layoutBenefit">
+                    💾 Current: 1 screenshot/page (Standard size)
+                </div>
+            </div>
+
             <div class="mode-selector">
                 <label>Capture Mode:</label>
                 <div class="mode-options">
@@ -570,6 +668,8 @@
         const videoPlayer = document.getElementById('videoPlayer');
         const controls = document.getElementById('controls');
         const modeOptions = document.querySelectorAll('.mode-option');
+        const layoutOptions = document.querySelectorAll('.layout-option');
+        const layoutBenefit = document.getElementById('layoutBenefit');
         const timeRange = document.getElementById('timeRange');
         const startTime = document.getElementById('startTime');
         const endTime = document.getElementById('endTime');
@@ -594,6 +694,28 @@
 
         let screenshots = [];
         let currentMode = 'interval';
+        let screenshotsPerPage = 1; // Default: 1 screenshot per page
+
+        // Layout selection
+        layoutOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                layoutOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                screenshotsPerPage = parseInt(this.dataset.layout);
+                updateLayoutBenefit(screenshotsPerPage);
+            });
+        });
+
+        function updateLayoutBenefit(layout) {
+            const benefits = {
+                1: '💾 Current: 1 screenshot/page (Standard size)',
+                2: '💾 2 screenshots/page → ~50% smaller file size!',
+                4: '💾 4 screenshots/page → ~75% smaller file size! ⭐ Recommended',
+                6: '💾 6 screenshots/page → ~83% smaller file size!',
+                9: '💾 9 screenshots/page → ~89% smaller file size!'
+            };
+            layoutBenefit.textContent = benefits[layout] || benefits[1];
+        }
 
         // Update display values
         sceneInterval.addEventListener('input', function() {
@@ -903,117 +1025,156 @@
         }
 
         async function generatePDF() {
-    progressText.textContent = 'Generating PDF...';
+            progressText.textContent = 'Generating PDF...';
 
-    const { jsPDF } = window.jspdf;
+            const { jsPDF } = window.jspdf;
 
-    // 🔹 Ask user for file name
-    let userFileName = prompt(
-        "Enter PDF file name:",
-        "video_to_pdf"
-    );
+            // Ask user for file name
+            let userFileName = prompt(
+                "Enter PDF file name:",
+                "video_to_pdf"
+            );
 
-    if (!userFileName) {
-        progressText.textContent = '❌ Download cancelled';
-        processBtn.disabled = false;
-        resetBtn.disabled = false;
-        return;
-    }
+            if (!userFileName) {
+                progressText.textContent = '❌ Download cancelled';
+                processBtn.disabled = false;
+                resetBtn.disabled = false;
+                return;
+            }
 
-    userFileName = userFileName.trim();
-    if (!userFileName.toLowerCase().endsWith('.pdf')) {
-        userFileName += '.pdf';
-    }
+            userFileName = userFileName.trim();
+            if (!userFileName.toLowerCase().endsWith('.pdf')) {
+                userFileName += '.pdf';
+            }
 
-    // Load first image to decide orientation
-    const firstImg = new Image();
-    firstImg.src = screenshots[0].image;
-    await new Promise(resolve => firstImg.onload = resolve);
+            // Load first image to decide orientation
+            const firstImg = new Image();
+            firstImg.src = screenshots[0].image;
+            await new Promise(resolve => firstImg.onload = resolve);
 
-    const orientation = firstImg.width > firstImg.height ? 'l' : 'p';
-    const pdf = new jsPDF(orientation, 'mm', 'a4');
+            const orientation = firstImg.width > firstImg.height ? 'l' : 'p';
+            const pdf = new jsPDF(orientation, 'mm', 'a4');
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10;
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
 
-    //  FIX: sequential image loading (prevents freeze)
-    for (let i = 0; i < screenshots.length; i++) {
-        if (i > 0) pdf.addPage(orientation);
+            // Calculate grid layout based on screenshotsPerPage
+            let rows, cols;
+            if (screenshotsPerPage === 1) {
+                rows = 1; cols = 1;
+            } else if (screenshotsPerPage === 2) {
+                rows = 1; cols = 2;
+            } else if (screenshotsPerPage === 4) {
+                rows = 2; cols = 2;
+            } else if (screenshotsPerPage === 6) {
+                rows = 2; cols = 3;
+            } else if (screenshotsPerPage === 9) {
+                rows = 3; cols = 3;
+            }
 
-        const img = new Image();
-        img.src = screenshots[i].image;
+            const totalPages = Math.ceil(screenshots.length / screenshotsPerPage);
 
-        await new Promise((resolve, reject) => {
-            img.onload = () => {
-                const imgAspectRatio = img.width / img.height;
-                const pageAspectRatio =
-                    (pageWidth - margin * 2) / (pageHeight - margin * 3);
+            // Process screenshots in batches
+            for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+                if (pageNum > 0) pdf.addPage(orientation);
 
-                let imageWidth, imageHeight, x, y;
+                const startIdx = pageNum * screenshotsPerPage;
+                const endIdx = Math.min(startIdx + screenshotsPerPage, screenshots.length);
+                const pageScreenshots = screenshots.slice(startIdx, endIdx);
 
-                if (imgAspectRatio > pageAspectRatio) {
-                    imageWidth = pageWidth - margin * 2;
-                    imageHeight = imageWidth / imgAspectRatio;
-                    x = margin;
-                    y = (pageHeight - imageHeight) / 2;
-                } else {
-                    imageHeight = pageHeight - margin * 3;
-                    imageWidth = imageHeight * imgAspectRatio;
-                    x = (pageWidth - imageWidth) / 2;
-                    y = margin;
+                // Calculate grid cell dimensions
+                const gridWidth = (pageWidth - margin * (cols + 1)) / cols;
+                const gridHeight = (pageHeight - margin * (rows + 1)) / rows;
+
+                // Place each screenshot in the grid
+                for (let i = 0; i < pageScreenshots.length; i++) {
+                    const row = Math.floor(i / cols);
+                    const col = i % cols;
+
+                    const img = new Image();
+                    img.src = pageScreenshots[i].image;
+
+                    await new Promise((resolve) => {
+                        img.onload = () => {
+                            const imgAspectRatio = img.width / img.height;
+                            const cellAspectRatio = gridWidth / gridHeight;
+
+                            let imageWidth, imageHeight, x, y;
+
+                            if (imgAspectRatio > cellAspectRatio) {
+                                // Image is wider
+                                imageWidth = gridWidth;
+                                imageHeight = gridWidth / imgAspectRatio;
+                            } else {
+                                // Image is taller
+                                imageHeight = gridHeight;
+                                imageWidth = gridHeight * imgAspectRatio;
+                            }
+
+                            // Calculate position in grid
+                            const cellX = margin + col * (gridWidth + margin);
+                            const cellY = margin + row * (gridHeight + margin);
+
+                            // Center image in cell
+                            x = cellX + (gridWidth - imageWidth) / 2;
+                            y = cellY + (gridHeight - imageHeight) / 2;
+
+                            pdf.addImage(img, 'JPEG', x, y, imageWidth, imageHeight);
+
+                            // Add timestamp below image (only if 1-4 screenshots per page)
+                            if (screenshotsPerPage <= 4) {
+                                pdf.setFontSize(8);
+                                pdf.setTextColor(100, 100, 100);
+                                
+                                let timeText = `${pageScreenshots[i].timeFormatted}`;
+                                if (pageScreenshots[i].isScene) {
+                                    timeText = pageScreenshots[i].isForced
+                                        ? `🔒 ${pageScreenshots[i].timeFormatted}`
+                                        : `🎬 ${pageScreenshots[i].timeFormatted}`;
+                                }
+
+                                pdf.text(timeText, cellX + gridWidth / 2, cellY + gridHeight - 2, { align: 'center' });
+                            }
+
+                            resolve();
+                        };
+                    });
                 }
 
-                pdf.addImage(img, 'JPEG', x, y, imageWidth, imageHeight);
-
-                pdf.setFontSize(12);
-                pdf.setTextColor(100, 100, 100);
-
-                let timeText = `Time: ${screenshots[i].timeFormatted}`;
-                if (screenshots[i].isScene) {
-                    timeText = screenshots[i].isForced
-                        ? `🔒 Auto-capture (Max Gap) - Time: ${screenshots[i].timeFormatted}`
-                        : `🎬 Scene Change - Time: ${screenshots[i].timeFormatted}`;
-                }
-
-                pdf.text(timeText, pageWidth / 2, 7, { align: 'center' });
-
+                // Add page number at bottom
                 pdf.setFontSize(10);
+                pdf.setTextColor(100, 100, 100);
                 pdf.text(
-                    `Page ${i + 1} of ${screenshots.length}`,
+                    `Page ${pageNum + 1} of ${totalPages}`,
                     pageWidth / 2,
                     pageHeight - 5,
                     { align: 'center' }
                 );
 
-                const progress = ((i + 1) / screenshots.length) * 100;
+                const progress = ((pageNum + 1) / totalPages) * 100;
                 progressFill.style.width = progress + '%';
                 progressFill.textContent = Math.round(progress) + '%';
+                progressText.textContent = `Creating PDF... Page ${pageNum + 1}/${totalPages}`;
+            }
 
-                resolve();
-            };
+            try {
+                pdf.save(userFileName);
+                progressText.textContent =
+                    `PDF generated successfully! (${screenshots.length} screenshots in ${totalPages} pages)`;
+                successMessage.style.display = 'block';
+            } catch (e) {
+                alert("PDF too large for this browser. Try fewer screenshots or smaller grid.");
+                progressText.textContent = '❌ PDF generation failed';
+            }
 
-            img.onerror = reject;
-        });
-    }
+            processBtn.disabled = false;
+            resetBtn.disabled = false;
 
-    try {
-        pdf.save(userFileName);
-        progressText.textContent =
-            `PDF generated successfully! (${screenshots.length} screenshots)`;
-        successMessage.style.display = 'block';
-    } catch (e) {
-        alert("PDF too large for this browser. Please use desktop.");
-        progressText.textContent = '❌ PDF generation failed';
-    }
-
-    processBtn.disabled = false;
-    resetBtn.disabled = false;
-
-    setTimeout(() => {
-        progressSection.style.display = 'none';
-    }, 3000);
-}
+            setTimeout(() => {
+                progressSection.style.display = 'none';
+            }, 3000);
+        }
     </script>
 </body>
 </html>
