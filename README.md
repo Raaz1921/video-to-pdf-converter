@@ -224,7 +224,7 @@ video-to-pdf-converter/
 - [ ] OCR text extraction
 - [ ] Annotation capabilities
 - [ ] Cloud storage integration (optional)
-- [x] ~~Multiple screenshots per page~~ ✅ **Completed!**
+
 
 ---
 
